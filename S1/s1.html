@@ -79,7 +79,7 @@
     let questions = [];
 
     // Load quiz questions from CSV
-    fetchCSV('https://shaijuapp1.github.io/Quiz/quest.csv', function(data) {
+    fetchCSV('https://shaijuapp1.github.io/Quiz/q2.csv', function(data) {
         questions = data.map(row => ({
             question: row.question,
             options: [row.option1, row.option2, row.option3, row.option4],
