@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz from CSV</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .quiz-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+        .question {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .options {
+            list-style: none;
+            padding: 0;
+        }
+        .options li {
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <h2>Quiz</h2>
+    <div id="quiz"></div>
+    <button onclick="checkAnswers()">Submit</button>
+    <p id="result"></p>
+</div>
+
+<script>
+    // Fetch and parse CSV data
+    function fetchCSV(url, callback) {
+        fetch(url)
+            .then(response => response.text())
+            .then(text => {
+                const rows = text.split('\n').map(row => row.split(','));
+                const headers = rows[0]; // First row is headers
+                const data = rows.slice(1).map(row => {
+                    const obj = {};
+                    headers.forEach((header, index) => {
+                        obj[header] = row[index];
+                    });
+                    return obj;
+                });
+                callback(data);
+            })
+            .catch(error => console.error('Error loading CSV:', error));
+    }
+
+    let questions = [];
+
+    // Load quiz questions from CSV
+    fetchCSV('https://shaijuapp1.github.io/Quiz/quest.csv', function(data) {
+        questions = data.map(row => ({
+            question: row.question,
+            options: [row.option1, row.option2, row.option3, row.option4],
+            answer: row.answer
+        }));
+        loadQuiz();
+    });
+
+    // Function to load quiz into the page
+    function loadQuiz() {
+        const quizContainer = document.getElementById('quiz');
+        quizContainer.innerHTML = '';
+        questions.forEach((q, index) => {
+            const questionElement = document.createElement('div');
+            questionElement.classList.add('question');
+            questionElement.innerHTML = `
+                <p>${q.question}</p>
+                <ul class="options">
+                    ${q.options.map(option => `
+                        <li>
+                            <input type="radio" name="q${index}" value="${option}" id="q${index}-${option}">
+                            <label for="q${index}-${option}">${option}</label>
+                        </li>`).join('')}
+                </ul>
+            `;
+            quizContainer.appendChild(questionElement);
+        });
+    }
+
+    // Function to check answers and calculate score
+    function checkAnswers() {
+        let score = 0;
+        questions.forEach((q, index) => {
+            const selectedOption = document.querySelector(`input[name="q${index}"]:checked`);
+            if (selectedOption && selectedOption.value === q.answer) {
+                score++;
+            }
+        });
+        document.getElementById('result').innerText = `Your score: ${score} out of ${questions.length}`;
+    }
+</script>
+
+</body>
+</html>

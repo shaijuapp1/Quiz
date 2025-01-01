@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>General Knowledge Quiz</title>
+  <!-- 1111--Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-5">
+    <h2 class="text-center">General Knowledge Quiz</h2>
+    <form id="quiz-form">
+      <div id="quiz-container">
+        <!-- Questions will be injected here -->
+      </div>
+      <button type="submit" class="btn btn-primary btn-block mt-4">Submit</button>
+    </form>
+    <div id="quiz-result" class="mt-4" style="display:none;">
+      <h4>Your Score: <span id="score"></span> / 100</h4>
+    </div>
+  </div>
+
+  <!-- Bootstrap and jQuery JS -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+  <script>
+    // URL of the published Google Sheet in CSV format
+    //const sheetUrl = "https://docs.google.com/spreadsheets/d/your-sheet-id/gviz/tq?tqx=out:csv";
+
+    sheetUrl = "https://shaijuapp1.github.io/Quiz/quest.csv"
+    
+ 
+    // Fetch the quiz data from the Google Sheets CSV
+    async function fetchQuizData() {
+      const response = await fetch(sheetUrl);
+      const csvText = await response.text();
+      const quizData = parseCSV(csvText);
+      renderQuiz(quizData);
+    }
+
+    // Parse the CSV data into a usable array
+    function parseCSV(csvText) {
+      const rows = csvText.trim().split("\n");
+      const quizData = rows.slice(1).map(row => {
+        const columns = row.split(",");
+        return {
+          question: columns[0],
+          options: columns.slice(1, 5),
+          answer: columns[5]
+        };
+      });
+      return quizData;
+    }
+
+    // Function to render the quiz questions dynamically
+    function renderQuiz(quizData) {
+      const quizContainer = document.getElementById('quiz-container');
+      quizData.forEach((item, index) => {
+        const questionDiv = document.createElement('div');
+        questionDiv.classList.add('form-group');
+        questionDiv.innerHTML = `
+          <label>${index + 1}. ${item.question}</label>
+          <div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="q${index}" id="q${index}A" value="A">
+              <label class="form-check-label" for="q${index}A">${item.options[0]}</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="q${index}" id="q${index}B" value="B">
+              <label class="form-check-label" for="q${index}B">${item.options[1]}</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="q${index}" id="q${index}C" value="C">
+              <label class="form-check-label" for="q${index}C">${item.options[2]}</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="q${index}" id="q${index}D" value="D">
+              <label class="form-check-label" for="q${index}D">${item.options[3]}</label>
+            </div>
+          </div>
+        `;
+        quizContainer.appendChild(questionDiv);
+      });
+    }
+
+    // Handle form submission
+    document.getElementById('quiz-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const quizData = window.quizData;  // Use globally stored quiz data
+      let score = 0;
+      quizData.forEach((item, index) => {
+        const selectedOption = document.querySelector(`input[name="q${index}"]:checked`);
+        if (selectedOption && selectedOption.value === item.answer) {
+          score++;
+        }
+      });
+      document.getElementById('score').textContent = score;
+      document.getElementById('quiz-result').style.display = 'block';
+      document.getElementById('quiz-form').style.display = 'none';
+    });
+
+    // Fetch and initialize the quiz
+    fetchQuizData();
+  </script>
+</body>
+</html>
